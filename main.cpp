@@ -2,6 +2,39 @@
 
 using namespace std;
 
+class node_list
+{
+	
+	public:	
+};
+class graph_c
+{
+	
+	
+	struct node_t
+	{
+		//node_list_t *connected_nodes_list; //wskaznik na listê krawedzi
+		
+		node_t *last_node; //root wezla
+		bool visited;
+		//node_t *next_node; //root wezla
+		short name;
+		
+	}node;
+	
+	public:
+	
+	
+	
+		
+};
+
+
+
+
+
+
+
 struct connection
 {
  connection *next;
@@ -12,7 +45,7 @@ struct node
 {
  short name;
  bool visited=false;   // uzywane tylko przy przeszukiwaniu listy
- node *previos_node;  // uzywane tylko przy przeszukiwaniu listy
+ node *previous_node;  // uzywane tylko przy przeszukiwaniu listy
  connection *actual_connection;
 };
 
@@ -21,7 +54,7 @@ bool search_node(node *next_node, node *&found_node, short node_name) //jako pie
     bool wanted_node_exists=false;
     node *bufor;
 
-        while(//tu nie wiem co, trzeba jakos sprawdzic czy nie sprawdzilo sie juz wszystkich wezlow)
+        while(/*tu nie wiem co, trzeba jakos sprawdzic czy nie sprawdzilo sie juz wszystkich wezlow*/)
         {
             while(next_node->actual_connections->child.visited) // dopoki nastepny wezel z listy polaczen wezel zostal odwiedzony
             {
