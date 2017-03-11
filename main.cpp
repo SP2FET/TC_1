@@ -14,13 +14,6 @@ struct node_t
 	node_t();
 };
 
-
-struct edge_t 
-{
-	  struct node_t *connected_node;
-	  struct edge_t *next_edge;
-};
-
 node_t::node_t()
 {
 	number = 1;
@@ -28,10 +21,22 @@ node_t::node_t()
 	next_node = 0;
 	visited = 0;
 	edge_t *edge = new edge_t;
-	edge->connected_node = 0;
-	edge->next_edge = 0;
 	edges = edge;
 }
+
+struct edge_t 
+{
+	  struct node_t *connected_node;
+	  struct edge_t *next_edge;
+	  edge_t();
+};
+
+edge_t::edge_t()
+{
+	connected_node = 0;
+	next_edge = 0;
+}
+
 struct graph_t
 {
 	struct node_t *first_node;
@@ -110,10 +115,12 @@ void graph_t::add_node(node_t *&parent)
 			  temp_node = temp_node->next_node;
 		temp_node->next_node = new_node;
 	}
+	
 	#ifdef ENABLE_DEFAULT_EDGES
 	add_edge(parent,new_node);
 	add_edge(new_node,parent);
 	#endif
+	
 	nodes_amount +=1;
 }
 
@@ -143,9 +150,9 @@ bool graph_t::delete_edge(node_t *&parent, node_t *&child)
 	temp_edge = parent->edges;
 	int amount = nodes_amount;
 	// parent -> child
-	if(parent->edges->connected_node == child) //pierwsza krawedz
+	if(temp_edge->connected_node == child) //pierwsza krawedz  na liscie
 	{
-		temp_edge = parent->edges;
+		//temp_edge = parent->edges;
 		parent->edges = temp_edge->next_edge; 
 		delete temp_edge;
 		//druga krawedz
@@ -193,6 +200,7 @@ bool graph_t::delete_node(int node_number)
 {
 	node_t *parent_node, *child_node, *act_node, *temp_node;
 	edge_t *act_edge, *edge_to_del;
+	
 	if(node_number < 2) return 1;
 	
 	parent_node = get_node(node_number-1);
@@ -202,10 +210,13 @@ bool graph_t::delete_node(int node_number)
 	parent_node->next_node = child_node;
 	
 	act_edge = act_node->edges;
+	cout<<"first edge: "<<act_node->edges->connected_node->number<<endl;
 	while (act_edge != NULL) //usuwa listê krawêdzi z wêz³a do usuniêcia
 	{
+		
 		edge_to_del = act_edge;
 		act_edge = act_edge->next_edge;
+		cout<<"deleting edge: "<<edge_to_del->connected_node->number<<endl;
 		delete edge_to_del;
 	}
 	
@@ -216,16 +227,22 @@ bool graph_t::delete_node(int node_number)
 		{
 			
 			temp_node = temp_node->next_node;
+			cout<<"deleting edge from: "<<temp_node->number<<endl;
 			if(temp_node == act_node) continue;
-			temp_node->number -= 1;
+			if (temp_node->number > act_node->number) temp_node->number -= 1;
+			act_edge = act_node->edges;
+			
 			while (act_edge != NULL) //usuwa krawedz laczaca kolejny wezel z usuwanym
 			{
+				
 				edge_to_del = act_edge;
+				cout<<"edge scan: "<<edge_to_del->connected_node->number<<endl;
 				act_edge = act_edge->next_edge;
+				
 				if(edge_to_del->connected_node == act_node) delete edge_to_del;
 			}
-			  
 			
+				
 		}
 			  
 			  //po wszystkich wezlach:
@@ -240,24 +257,26 @@ int main()
 	
 	node_t *num_node;
 	edge_t *num_edge;
-	num_node = graph->get_node(1);
 	graph->add_node(graph->first_node);
 	graph->add_node(graph->first_node->next_node);
 	graph->add_node(graph->first_node->next_node->next_node);
 	graph->add_node(graph->first_node->next_node->next_node->next_node);
-	graph->add_node(graph->first_node->next_node->next_node->next_node->next_node);
+	//graph->add_node(graph->first_node->next_node->next_node->next_node->next_node);
 	
 	graph->add_edge(graph->get_node(1), graph->get_node(2));
 	graph->add_edge(graph->get_node(1), graph->get_node(4));
 	graph->add_edge(graph->get_node(2), graph->get_node(3));
-	graph->add_edge(graph->get_node(2), graph->get_node(4));
-	graph->add_edge(graph->get_node(5), graph->get_node(6));
+	graph->add_edge(graph->get_node(3), graph->get_node(4));
+	graph->add_edge(graph->get_node(4), graph->get_node(5));
+	graph->add_edge(graph->get_node(3), graph->get_node(5));
 	
 	for(int i = 1; i <= graph->nodes_amount; i++)
 	{
 		num_node = graph->get_node(i);
 		num_edge = num_node->edges;
 		cout<<"node: "<<num_node->number<<" is connected with: ";
+		
+		
 		while (num_edge != NULL) 
 		{
 		
@@ -270,13 +289,14 @@ int main()
 		}
 		cout<<endl;
 	}
-	graph->delete_node(2);
+	graph->delete_node(4);
 	cout<<endl;
 		for(int i = 1; i <= graph->nodes_amount; i++)
 	{
 		num_node = graph->get_node(i);
 		num_edge = num_node->edges;
 		cout<<"node: "<<num_node->number<<" is connected with: ";
+		
 		while (num_edge != NULL) 
 		{
 		
