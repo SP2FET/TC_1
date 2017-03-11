@@ -21,8 +21,9 @@ struct edge_t
 
 node_t::node_t()
 {
-	number = 0;
+	number = 1;
 	next_node = 0;
+	visited = 0;
 	edge_t *edge = new edge_t;
 	edge->connected_node = 0;
 	edge->next_edge = 0;
@@ -43,13 +44,6 @@ struct graph_t
 graph_t::graph_t()
 {
 	node_t *init_node = new node_t;
-	init_node->visited = 0;
-
-	init_node->next_node = 0;	
-	
-	init_node->edges->connected_node = 0;
-	init_node->edges->next_edge = 0;
-	
 	nodes_amount = 1;
 	first_node = init_node;
 	actual_node = first_node;
@@ -97,8 +91,9 @@ void graph_t::add_node(node_t *&parent)
 {
 	node_t *new_node = new node_t;
 	node_t *temp_node;
-	new_node->visited = 0;
+	
 	new_node->number = nodes_amount + 1;
+	
 	if(parent->next_node == 0) parent->next_node = new_node;
 	else 
 	{
@@ -107,7 +102,7 @@ void graph_t::add_node(node_t *&parent)
 			  temp_node = temp_node->next_node;
 		temp_node->next_node = new_node;
 	}
-	new_node->next_node = 0;
+	
 	add_edge(parent,new_node);
 	add_edge(new_node,parent);
 	nodes_amount +=1;
@@ -121,18 +116,14 @@ node_t* graph_t::get_node(int node_number)
 		return first_node;
 	}
 	else 
-	{
-		
+	{		
 		temp_node = first_node;
-		while(temp_node->number != node_number) 
-		{
-			cout<<"node_number = "<<node_number<<" act_number = "<<temp_node->number<<endl;
-			if(temp_node->next_node == 0) return 0;
-			cout<<"test2"<<endl;
-			temp_node = temp_node->next_node;
-		}
-			  
 		
+		while(temp_node->number != node_number) 
+		{			
+			if(temp_node->next_node == 0) return 0;
+			temp_node = temp_node->next_node;
+		}		
 		return temp_node;
 	}
 }
