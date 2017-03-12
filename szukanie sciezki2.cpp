@@ -57,10 +57,10 @@ struct graph_t
 	void    clear_visited_flags();
     int     count_nodes();
 	void    paint_graph(node_t *start_node);
-	//void    give_color(node_t *start_node);
+	void    give_color(node_t *start_node);
 	bool    search_edges(node_t *parent_node, node_t *&child_node, edge_t *&start_edge);
 
-}
+} ;
 
 graph_t::graph_t()
 {
@@ -338,88 +338,106 @@ int graph_t::count_nodes()
          return nodes_number;
 }
 
+
+
 bool graph_t::search_edges(node_t *parent_node,node_t *&child_node, edge_t *&start_edge)
 {
     bool edges_end=false;
+    char test;
 
     while(start_edge->left_node!=parent_node && start_edge->right_node!=parent_node)
     {
-        start_edge=start_edge->next_edge;
-
         if(start_edge->next_edge==0)
         {
-            edges_end=true;
+            cout<<"END OF EDGE LIST"<<endl;
+            edges_end=true;                    // jak to sie ustawi to juz na pewno zadna krawedz sie nie znajdzie
             break;
         }
+         else   start_edge=start_edge->next_edge;
     }
 
-    if(start_edge->left_node==parent_node) child_node=start_edge->right_node;
-        else if (start_edge->right_node==parent_node) child_node=start_edge->left_node;
+    if(!edges_end)
+    {
+        if(start_edge->left_node==parent_node)   child_node=start_edge->right_node;
+        else if(start_edge->right_node==parent_node)  child_node=start_edge->left_node;
+
+        cout<<"TESTED EDGE FROM "<<parent_node->number<<" TO "<<child_node->number<<endl;
+    }
 
         return edges_end;
 
-      //pamietac o kasowaniu wskaznika start_edge
 }
 
-/*
+
+
 void graph_t::give_color(node_t *start_node)
 {
-   node_t *temp_node=parent;
-   edge_t *start_edge=temp_node->edges;
+   node_t *temp_node=start_node;
+   node_t *child_node;
+   edge_t *start_edge=edges_list;
    int proposed_color=0;
    bool found_color=false;
 
    while(!found_color)
    {
+       cout<<endl<<"GIVING COLOR"<<endl<<endl;
 
-      while(!found_color && temp_node->edges->next_edge!=NULL) //jesli nie znaleziono jeszcze koloru albo nie skonczyla sie liczba krawedzi
+      while(!found_color && !search_edges(temp_node,child_node,start_edge)) //jesli nie znaleziono jeszcze koloru albo nie skonczyla sie liczba krawedzi
       {
         found_color=true;
-         cout<<"CHECKING "<<temp_node->edges->connected_node->number<<endl;
-          if(proposed_color==temp_node->edges->connected_node->color)
+
+          if(proposed_color==child_node->color)
           {
               found_color=false;
-              cout<<"COLOR "<<proposed_color<<" FOUND IN "<<temp_node->edges->connected_node->number<<endl;
+              cout<<"COLOR "<<proposed_color<<" FOUND IN "<<child_node->number<<endl;
               break;
           }
-          temp_node->edges=temp_node->edges->next_edge; //porownuje z nastepnym wezlem
+
+            else if(start_edge->next_edge==0)
+             {
+                cout<<"END OF EDGE LIST2"<<endl;
+                break;
+             }
+
+            else  start_edge=start_edge->next_edge;
       }
 
      if(!found_color) proposed_color++;
-    temp_node->edges=start_edge;
+     start_edge=edges_list;
    }
+
+     cout<<endl<<"END OF GIVING COLOR"<<endl<<endl;
 
    temp_node->color=proposed_color;
    cout<<"Node "<<temp_node->number<<" has given "<<temp_node->color<<" color"<<endl;
 }
 
-*/
+
 
 void graph_t::paint_graph(node_t *start_node) //jako pierwszy parametr podajemy wezel, od ktorego zaczynamy
 {
 
     bool entering_new_node=true;
-    int nodes_amount=count_nodes();
     int checked_nodes_amount=0;
 
     node_t *temp_node=start_node;
     node_t *child_node;
     node_t *bufor_node;
-    edge_t *start_edge;
+    edge_t *start_edge=edges_list;
 
     clear_visited_flags();
+    int nodes_amount=count_nodes();
 
         while(checked_nodes_amount<nodes_amount)
         {
                 entering_new_node=false;
+                start_edge=edges_list;
 
                  if(!temp_node->visited)
                 {
                     checked_nodes_amount++; //zabezpieczebie zeby sie nie dodalo kilka razy
                     temp_node->visited=true;
                 }
-
-                // if(checked_nodes_amount==nodes_amount) break;
 
                 //give_color(temp_node);
 
@@ -430,22 +448,28 @@ void graph_t::paint_graph(node_t *start_node) //jako pierwszy parametr podajemy 
                             entering_new_node=true;
                             break;
                         }
+
+                        else if(start_edge->next_edge==0)
+                            {
+                                cout<<"END OF EDGE LIST2"<<endl;
+                                break;
+                            }
+
+                           else  start_edge=start_edge->next_edge;
                  }
 
                if(entering_new_node) // jesli odnazliono jakis nieodwiedzony wezel
                {
-                   cout<<"GOING FROM "<<temp_node->number<<" TO "<<child_node->number<<endl;
+                   cout<<endl<<"GOING FROM "<<temp_node->number<<" TO "<<child_node->number<<endl<<endl;
                    bufor_node=temp_node;
                    temp_node=child_node;
                    temp_node->return_node=bufor_node;
                }
                     else
                     {                                //UWAGA - nie dziala jesli jestesmy w poczatkowym wezle bo return_node nie jest okreslony
-                        cout<<"RETURN TO "<<temp_node->return_node->number<<endl;
+                        cout<<endl<<"RETURN TO "<<temp_node->return_node->number<<endl<<endl;
                         temp_node=temp_node->return_node; // powracamy do wezla, z ktorego przyszlismy
                     }
-
-                    start_edge=edges_list;
         }
 
 }
@@ -454,14 +478,23 @@ void graph_t::paint_graph(node_t *start_node) //jako pierwszy parametr podajemy 
 int main()
 {
 	graph_t *graph = new graph_t;
-	graph->add_nodes(5);
+	graph->add_nodes(10);
 	graph->add_edge(graph->get_node(1), graph->get_node(2));
-	graph->add_edge(graph->get_node(1), graph->get_node(4));
-	graph->add_edge(graph->get_node(4), graph->get_node(5));
-	graph->add_edge(graph->get_node(4), graph->get_node(3));
 	graph->add_edge(graph->get_node(2), graph->get_node(3));
+	graph->add_edge(graph->get_node(6), graph->get_node(1));
+	graph->add_edge(graph->get_node(4), graph->get_node(9));
+	graph->add_edge(graph->get_node(2), graph->get_node(5));
+
+	graph->add_edge(graph->get_node(4), graph->get_node(6));
+	graph->add_edge(graph->get_node(3), graph->get_node(7));
+	graph->add_edge(graph->get_node(1), graph->get_node(5));
+	graph->add_edge(graph->get_node(8), graph->get_node(9));
+	graph->add_edge(graph->get_node(8), graph->get_node(10));
+
 
 	graph->draw();
+
+	graph->paint_graph(graph->nodes_list);
 
 	//graph->delete_edge(graph->get_node(1),graph->get_node(2));
 	graph->delete_node(2);
