@@ -18,6 +18,7 @@ struct node_t
 node_t::node_t()
 {
 	next_node = NULL;
+	return_node = NULL;
 	number = 1;
     visited=false;
 	color=0;
@@ -42,7 +43,8 @@ struct graph_t
 {
 	edge_t *edges_list;
 	node_t *nodes_list;
-	
+	bool painting_donable; // wskazuje, czy da sie pokolorowac graf
+
 	graph_t();
 	void add_edge(node_t* left, node_t* right);
 	node_t* add_node();
@@ -53,7 +55,6 @@ struct graph_t
 	void	delete_node(int node_number);
 	void 	delete_edge(node_t* left, node_t* right);
 	void 	draw();
-	
 
 	void    clear_visited_flags();
     int     count_nodes();
@@ -67,6 +68,7 @@ graph_t::graph_t()
 {
 	edges_list = NULL;
 	nodes_list = NULL;
+	painting_donable=false;
 }
 
 edge_t* graph_t::get_last_edge()
@@ -93,7 +95,7 @@ node_t* graph_t::get_last_node()
 
 node_t*  graph_t::get_node(int node_number)
 {
-		
+
 	node_t *temp_node = nodes_list;
 
 	if(temp_node == NULL || (temp_node->number == node_number)) return temp_node;
@@ -117,7 +119,7 @@ void graph_t::add_edge(node_t* left, node_t* right)
 	new_edge->left_node = left;
 	new_edge->right_node = right;
 
-	
+
 	delete_edge(left, right);
 
 	if(edges_list == NULL)
@@ -238,15 +240,18 @@ void graph_t::draw() {
 		cin.sync();
 		cin.get();
 		return;
-	}		
-	
+	}
+
 	if(temp_node == NULL || edges_list == NULL) return;
-	
-	
+
+
 	cout<<endl<<endl;
 	do
 	{
-		cout<<"node "<<temp_node->number<<" (color "<<temp_node->color<<") is connected with: ";
+		cout<<"node "<<temp_node->number<<" (color ";
+
+		if(temp_node->color && painting_donable)  cout<<temp_node->color<<") is connected with: ";
+		  else cout<<"is undefined"<<") is connected with: ";
 		edge_t *temp_edge = edges_list;
 
 		do
@@ -273,7 +278,7 @@ void graph_t::draw() {
 	}while(temp_node);
 	cin.sync();
 	cin.get();
-	
+
 }
 
 
@@ -389,51 +394,6 @@ void add_edge_dialog(graph_t *graph);
 void delete_node_dialog(graph_t *graph);
 void delete_edge_dialog(graph_t *graph);
 void paint_dialog(graph_t *graph);
-/*
-
-void graph_t::give_color(node_t *start_node)
-{
-   node_t *temp_node=start_node;
-   node_t *child_node;
-   edge_t *start_edge=edges_list;
-   int proposed_color=0;
-   bool bad_color=true;
-   bool found_color=false;
-
-   while(!found_color)
-   {
-       cout<<endl<<"GIVING COLOR"<<endl<<endl;
-       bad_color=false;
-       found_color=true;
-      while(!bad_color && !search_edges(temp_node,child_node,start_edge)) //jesli nie znaleziono jeszcze koloru albo nie skonczyla sie liczba krawedzi
-      {
-
-          if(proposed_color==child_node->color)
-          {
-              found_color=false;
-              bad_color=true;
-              cout<<"COLOR "<<proposed_color<<" FOUND IN "<<child_node->number<<endl;
-              break;
-          }
-
-            else if(start_edge->next_edge==0)
-             {
-                cout<<"END OF EDGE LIST2"<<endl;
-                break;
-             }
-
-            else  start_edge=start_edge->next_edge;
-      }
-     if(!found_color) proposed_color++;
-     start_edge=edges_list;
-   }
-
-     cout<<endl<<"END OF GIVING COLOR"<<endl<<endl;
-
-   temp_node->color=proposed_color;
-   cout<<"Node "<<temp_node->number<<" has given "<<temp_node->color<<" color"<<endl;
-}
-*/
 
 
 void graph_t::give_color(node_t *start_node)
@@ -443,6 +403,7 @@ void graph_t::give_color(node_t *start_node)
    edge_t *start_edge=edges_list;
    int proposed_color=1;
    bool found_color=false;
+   bool painting_donable=true;
 
    while(!found_color)
    {
@@ -481,6 +442,7 @@ void graph_t::paint_graph(node_t *start_node) //jako pierwszy parametr podajemy 
 {
 
     bool entering_new_node=true;
+    painting_donable=true;
     int checked_nodes_amount=0;
 
     node_t *temp_node=start_node;
@@ -529,15 +491,23 @@ void graph_t::paint_graph(node_t *start_node) //jako pierwszy parametr podajemy 
                    temp_node=child_node;
                    temp_node->return_node=bufor_node;
                }
-                    else if(temp_node->return_node!=NULL)
-                    {                                //UWAGA - nie dziala jesli jestesmy w poczatkowym wezle bo return_node nie jest okreslony
-                   //     cout<<endl<<"RETURN TO "<<temp_node->return_node->number<<endl<<endl;
+                    else if(temp_node->return_node==0)  //nie przechodzimy do nowego wezla a poprzedni nie istnieje -  nie da sie pokolorowac grafu
+                     {
+                         cout<<endl<<endl<<"CANNOT GO THROUGH THE WHOLE GRAPH!"<<endl;;
+                         painting_donable=false;
+                         break;
+                     }
+
+                    else
+                    {
+                        //cout<<endl<<"RETURN TO "<<temp_node->return_node->number<<endl<<endl;
                         temp_node=temp_node->return_node; // powracamy do wezla, z ktorego przyszlismy
                     }
-                   //  else cout<<"CANNOT RETURN!"<<endl;
+
         }
-	
+
 }
+
 
 void show_menu(graph_t *graph)
 {
@@ -554,7 +524,7 @@ void show_menu(graph_t *graph)
 	cout<<"7. Display nodes and edges"<<endl;
 	cout<<">";
 	cin>>c;
-	
+
 	switch(c)
 	{
 		case '1':
@@ -575,14 +545,14 @@ void show_menu(graph_t *graph)
 		case '6':
 				 paint_dialog(graph);
 				 show_menu(graph);
-				 
+
 		case '7':
 				 graph->draw();
-				 
-				 
+
+
 		default: show_menu(graph);
 	}
-	
+
 }
 
 void add_node_dialog(graph_t *graph)
@@ -594,15 +564,15 @@ void add_node_dialog(graph_t *graph)
 	cout<<">";
 	cin>>c;
 	upper_c = toupper(c);
-	
+
 	if(upper_c == 'Y')
 	{
 		graph->add_node();
 		cout<<endl<<"SUCCESSFULLY ADDED NODE "<<graph->count_nodes()<<" !";
 		cin.sync();
 		cin.get();
-		
-	} 
+
+	}
 	show_menu(graph);
 }
 
@@ -633,15 +603,15 @@ void delete_node_dialog(graph_t *graph)
 	cout<<">";
 	cin>>c;
 	upper_c = toupper(c);
-	
+
 	if(upper_c == 'Y')
 	{
 		graph->delete_node(node_to_delete);
 		cout<<endl<<"SUCCESSFULLY DELETED NODE!";
 		cin.sync();
 		cin.get();
-		
-	} 
+
+	}
 	show_menu(graph);
 }
 
@@ -666,27 +636,27 @@ void delete_edge_dialog(graph_t *graph)
 	cout<<"Enter second node of edge"<<endl;
 	cout<<">";
 	cin>>second;
-	
+
 	if(first == second || first > nodes_amount || second > nodes_amount)
 	{
 		cout<<endl<<"ENTER ANOTHER NODE!";
 		delete_edge_dialog(graph);
 	}
-	
-	
+
+
 	cout<<"Do you really want to delete edge between "<<first<<" and "<<second<<" node? (y/n)"<<endl;
 	cout<<">";
 	cin>>c;
 	upper_c = toupper(c);
-	
+
 	if(upper_c == 'Y')
 	{
 		graph->delete_edge(graph->get_node(first),graph->get_node(second) );
 		cout<<endl<<"SUCCESSFULLY DELETED NODE!";
 		cin.sync();
 		cin.get();
-		
-	} 
+
+	}
 	show_menu(graph);
 }
 
@@ -694,7 +664,7 @@ void add_multiple_nodes_dialog(graph_t *graph)
 {
 	int amount;
 	int act_amount = graph->count_nodes();
-	
+
 	system("cls");
 	cout<<"ADDING MULTIPLE NODES"<<endl<<endl;
 	cout<<"Enter amount of nodes to add"<<endl;
@@ -706,8 +676,8 @@ void add_multiple_nodes_dialog(graph_t *graph)
 		cout<<endl<<"SUCCESSFULLY ADDED "<<amount<<" NODES! ("<<act_amount<<" - "<<graph->count_nodes()<<")";
 		cin.sync();
 		cin.get();
-		
-	
+
+
 	show_menu(graph);
 }
 
@@ -738,15 +708,15 @@ void add_edge_dialog(graph_t *graph)
 		cin.get();
 		add_edge_dialog(graph);
 	}
-	
+
 	graph->add_edge(graph->get_node(first),graph->get_node(second));
-	
-	
+
+
 		cout<<endl<<"SUCCESSFULLY ADDED EDGE!";
 		cin.sync();
 		cin.get();
-		
-	
+
+
 	show_menu(graph);
 }
 
@@ -772,36 +742,37 @@ void paint_dialog(graph_t *graph)
 		cin.sync();
 		cin.get();
 		paint_dialog(graph);
-	
+
 	}
 	graph->paint_graph(graph->get_node(node_number));
-	cout<<endl<<endl<<"DONE!";
+
+	if(graph->painting_donable)cout<<endl<<endl<<"DONE!";
+        else cout<<endl<<endl<<"CANNOT PAINT GRAPH BECAUSE OF THE WRONG CONNECTIONS!";
+
 	cin.sync();
 	cin.get();
 }
 int main()
 {
 	graph_t *graph = new graph_t;
-//	graph->add_nodes(8);
-//	graph->add_edge(graph->get_node(1), graph->get_node(2));
-//	graph->add_edge(graph->get_node(2), graph->get_node(3));
-//	graph->add_edge(graph->get_node(3), graph->get_node(4));
-//	graph->add_edge(graph->get_node(4), graph->get_node(5));
-//	graph->add_edge(graph->get_node(5), graph->get_node(6));
-//	graph->add_edge(graph->get_node(6), graph->get_node(7));
-//	graph->add_edge(graph->get_node(7), graph->get_node(8));
-//	graph->add_edge(graph->get_node(8), graph->get_node(1));
-//
-//	graph->add_edge(graph->get_node(1), graph->get_node(4));
-//	graph->add_edge(graph->get_node(1), graph->get_node(5));
-//
-//	graph->add_edge(graph->get_node(2), graph->get_node(6));
-//	graph->add_edge(graph->get_node(2), graph->get_node(8));
-//
-//	graph->add_edge(graph->get_node(5), graph->get_node(8));
-//	graph->add_edge(graph->get_node(5), graph->get_node(7));
-//	graph->add_edge(graph->get_node(5), graph->get_node(3));
-//	graph->add_edge(graph->get_node(5), graph->get_node(2));
+	graph->add_nodes(8);
+	graph->add_edge(graph->get_node(1), graph->get_node(2));
+	graph->add_edge(graph->get_node(2), graph->get_node(3));
+	//graph->add_edge(graph->get_node(3), graph->get_node(4));
+	graph->add_edge(graph->get_node(4), graph->get_node(5));
+	//graph->add_edge(graph->get_node(5), graph->get_node(6));
+	//graph->add_edge(graph->get_node(6), graph->get_node(7));
+	graph->add_edge(graph->get_node(7), graph->get_node(8));
+	graph->add_edge(graph->get_node(8), graph->get_node(1));
+
+	//graph->add_edge(graph->get_node(1), graph->get_node(4));
+	//graph->add_edge(graph->get_node(1), graph->get_node(5));
+	//graph->add_edge(graph->get_node(2), graph->get_node(6));
+	//graph->add_edge(graph->get_node(2), graph->get_node(8));
+	//graph->add_edge(graph->get_node(5), graph->get_node(8));
+  //  graph->add_edge(graph->get_node(5), graph->get_node(7));
+	//graph->add_edge(graph->get_node(5), graph->get_node(3));
+	//graph->add_edge(graph->get_node(5), graph->get_node(2));
 //
 //
 //
