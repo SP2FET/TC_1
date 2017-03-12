@@ -14,15 +14,6 @@ struct node_t
 	node_t();
 };
 
-node_t::node_t()
-{
-	number = 1;
-	edges_number = 0;
-	next_node = 0;
-	visited = 0;
-	edge_t *edge = new edge_t;
-	edges = edge;
-}
 
 struct edge_t 
 {
@@ -37,6 +28,15 @@ edge_t::edge_t()
 	next_edge = 0;
 }
 
+node_t::node_t()
+{
+	number = 1;
+	edges_number = 0;
+	next_node = 0;
+	visited = 0;
+	edge_t *edge = new edge_t();
+	edges = edge;
+}
 struct graph_t
 {
 	struct node_t *first_node;
@@ -78,6 +78,7 @@ void graph_t::add_edge(node_t *parent, node_t *child)
 		parent = temp_node;
 	}
 	
+	///////////////////////////////////////////////
 	edge_t *new_edge_child = new edge_t;
 	new_edge_child->connected_node = parent;
 	new_edge_child->next_edge = 0;
@@ -268,7 +269,7 @@ int main()
 	graph->add_edge(graph->get_node(2), graph->get_node(3));
 	graph->add_edge(graph->get_node(3), graph->get_node(4));
 	graph->add_edge(graph->get_node(4), graph->get_node(5));
-	graph->add_edge(graph->get_node(3), graph->get_node(5));
+	//graph->add_edge(graph->get_node(3), graph->get_node(5));
 	
 	for(int i = 1; i <= graph->nodes_amount; i++)
 	{
