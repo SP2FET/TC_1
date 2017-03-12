@@ -369,26 +369,28 @@ bool graph_t::search_edges(node_t *parent_node,node_t *&child_node, edge_t *&sta
 }
 
 
-
+/*
 void graph_t::give_color(node_t *start_node)
 {
    node_t *temp_node=start_node;
    node_t *child_node;
    edge_t *start_edge=edges_list;
    int proposed_color=0;
+   bool bad_color=true;
    bool found_color=false;
 
    while(!found_color)
    {
        cout<<endl<<"GIVING COLOR"<<endl<<endl;
-
-      while(!found_color && !search_edges(temp_node,child_node,start_edge)) //jesli nie znaleziono jeszcze koloru albo nie skonczyla sie liczba krawedzi
+       bad_color=false;
+       found_color=true;
+      while(!bad_color && !search_edges(temp_node,child_node,start_edge)) //jesli nie znaleziono jeszcze koloru albo nie skonczyla sie liczba krawedzi
       {
-        found_color=true;
 
           if(proposed_color==child_node->color)
           {
               found_color=false;
+              bad_color=true;
               cout<<"COLOR "<<proposed_color<<" FOUND IN "<<child_node->number<<endl;
               break;
           }
@@ -401,7 +403,6 @@ void graph_t::give_color(node_t *start_node)
 
             else  start_edge=start_edge->next_edge;
       }
-
      if(!found_color) proposed_color++;
      start_edge=edges_list;
    }
@@ -411,7 +412,48 @@ void graph_t::give_color(node_t *start_node)
    temp_node->color=proposed_color;
    cout<<"Node "<<temp_node->number<<" has given "<<temp_node->color<<" color"<<endl;
 }
+*/
 
+
+void graph_t::give_color(node_t *start_node)
+{
+   node_t *temp_node=start_node;
+   node_t *child_node;
+   edge_t *start_edge=edges_list;
+   int proposed_color=1;
+   bool found_color=false;
+
+   while(!found_color)
+   {
+       cout<<endl<<"GIVING COLOR"<<endl<<endl;
+       found_color=true;                        // zakladam, ze znajde kolor
+      while(found_color && !search_edges(temp_node,child_node,start_edge)) //jesli nie znaleziono jeszcze koloru albo nie skonczyla sie liczba krawedzi
+      {
+
+          if(proposed_color==child_node->color)
+          {
+              found_color=false;  // jesli proponowany kolor jest w jednym z sasiadujacych wezlow
+              cout<<"COLOR "<<proposed_color<<" FOUND IN "<<child_node->number<<endl;
+              break;
+          }
+
+            else if(start_edge->next_edge==0)
+             {
+                cout<<"END OF EDGE LIST2"<<endl;
+                break;
+             }
+
+            else  start_edge=start_edge->next_edge;
+      }
+     if(!found_color) proposed_color++;
+     start_edge=edges_list;
+   }
+
+     cout<<endl<<"END OF GIVING COLOR"<<endl<<endl;
+
+   temp_node->color=proposed_color;
+   cout<<"Node "<<temp_node->number<<" has given "<<temp_node->color<<" color"<<endl;
+}
 
 
 void graph_t::paint_graph(node_t *start_node) //jako pierwszy parametr podajemy wezel, od ktorego zaczynamy
@@ -437,9 +479,10 @@ void graph_t::paint_graph(node_t *start_node) //jako pierwszy parametr podajemy 
                 {
                     checked_nodes_amount++; //zabezpieczebie zeby sie nie dodalo kilka razy
                     temp_node->visited=true;
+                    give_color(temp_node);
                 }
 
-                //give_color(temp_node);
+
 
                 while(!search_edges(temp_node, child_node, start_edge))
                  {
@@ -465,11 +508,12 @@ void graph_t::paint_graph(node_t *start_node) //jako pierwszy parametr podajemy 
                    temp_node=child_node;
                    temp_node->return_node=bufor_node;
                }
-                    else
+                    else if(temp_node->return_node!=NULL)
                     {                                //UWAGA - nie dziala jesli jestesmy w poczatkowym wezle bo return_node nie jest okreslony
                         cout<<endl<<"RETURN TO "<<temp_node->return_node->number<<endl<<endl;
                         temp_node=temp_node->return_node; // powracamy do wezla, z ktorego przyszlismy
                     }
+                     else cout<<"CANNOT RETURN!"<<endl;
         }
 
 }
@@ -478,26 +522,40 @@ void graph_t::paint_graph(node_t *start_node) //jako pierwszy parametr podajemy 
 int main()
 {
 	graph_t *graph = new graph_t;
-	graph->add_nodes(10);
+	graph->add_nodes(8);
 	graph->add_edge(graph->get_node(1), graph->get_node(2));
 	graph->add_edge(graph->get_node(2), graph->get_node(3));
-	graph->add_edge(graph->get_node(6), graph->get_node(1));
-	graph->add_edge(graph->get_node(4), graph->get_node(9));
-	graph->add_edge(graph->get_node(2), graph->get_node(5));
+	graph->add_edge(graph->get_node(3), graph->get_node(4));
+	graph->add_edge(graph->get_node(4), graph->get_node(5));
+	graph->add_edge(graph->get_node(5), graph->get_node(6));
+	graph->add_edge(graph->get_node(6), graph->get_node(7));
+	graph->add_edge(graph->get_node(7), graph->get_node(8));
+	graph->add_edge(graph->get_node(8), graph->get_node(1));
 
-	graph->add_edge(graph->get_node(4), graph->get_node(6));
-	graph->add_edge(graph->get_node(3), graph->get_node(7));
+	graph->add_edge(graph->get_node(1), graph->get_node(4));
 	graph->add_edge(graph->get_node(1), graph->get_node(5));
-	graph->add_edge(graph->get_node(8), graph->get_node(9));
-	graph->add_edge(graph->get_node(8), graph->get_node(10));
+
+	graph->add_edge(graph->get_node(2), graph->get_node(6));
+	graph->add_edge(graph->get_node(2), graph->get_node(8));
+
+	graph->add_edge(graph->get_node(5), graph->get_node(8));
+	graph->add_edge(graph->get_node(5), graph->get_node(7));
+	graph->add_edge(graph->get_node(5), graph->get_node(3));
+	graph->add_edge(graph->get_node(5), graph->get_node(2));
+
+
+
+
 
 
 	graph->draw();
 
 	graph->paint_graph(graph->nodes_list);
 
-	//graph->delete_edge(graph->get_node(1),graph->get_node(2));
-	graph->delete_node(2);
+	//graph->delete_edge(graph->get_node(8),graph->get_node(5));
+	//graph->delete_node(10);
+
+
 	cout<<endl;
 	graph->draw();
 	delete graph;
